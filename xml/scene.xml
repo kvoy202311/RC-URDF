@@ -1,0 +1,90 @@
+<mujoco model="RCV8 scene">
+  <include file="RCV8.xml"/>
+
+  <!--
+    机器人本体已经在 RCV8.xml 中改成 floating base，并设置了标准站立初始高度，
+    因此 scene 不再需要通过下移地面来“迁就”模型位置。
+    这里把 statistic 中心恢复到更接近常规站立机器人的高度，便于默认视角显示。
+  -->
+  <statistic center="0 0 0.25" extent="0.8"/>
+
+  <visual>
+    <headlight diffuse="0.6 0.6 0.6" ambient="0.3 0.3 0.3" specular="0 0 0"/>
+    <rgba haze="0.15 0.25 0.35 1"/>
+    <global azimuth="-130" elevation="-20"/>
+  </visual>
+
+  <asset>
+    <texture type="skybox" builtin="gradient" rgb1="0.3 0.5 0.7" rgb2="0 0 0" width="512" height="3072"/>
+    <texture type="2d" name="groundplane" builtin="checker" mark="edge" rgb1="0.2 0.3 0.4" rgb2="0.1 0.2 0.3" markrgb="0.8 0.8 0.8" width="300" height="300"/>
+    <material name="groundplane" texture="groundplane" texuniform="true" texrepeat="5 5" reflectance="0.2"/>
+  </asset>
+
+  <worldbody>
+    <light pos="0 0 2.2" dir="0 0 -1" directional="true"/>
+    <!--
+      采用大方形综合场地，而不是线性长条测试带。
+      外围用低围挡圈出边界，内部按区域组织多种地形：
+      1. 中央出生平地区
+      2. 左上斜坡区
+      3. 右上粗糙凹凸不平路
+      4. 左下规则台阶区
+      5. 右下高台与复杂组合障碍区
+      6. 单独一条 30cm 挡板
+      这样更像一个真实测试场，机器人可以在方形区域内自由切换不同类型障碍。
+    -->
+    <geom name="floor" size="0 0 0.05" type="plane" material="groundplane"/>
+
+    <!-- 外围围挡：用四面低墙形成方形边界，避免机器人跑出测试区域。 -->
+    <geom name="wall_north" type="box" pos="0  6.20 0.25" size="6.60 0.10 0.25" rgba="0.62 0.62 0.64 1" friction="1.0 0.02 0.02"/>
+    <geom name="wall_south" type="box" pos="0 -6.20 0.25" size="6.60 0.10 0.25" rgba="0.62 0.62 0.64 1" friction="1.0 0.02 0.02"/>
+    <geom name="wall_east"  type="box" pos="6.20 0  0.25" size="0.10 6.20 0.25" rgba="0.62 0.62 0.64 1" friction="1.0 0.02 0.02"/>
+    <geom name="wall_west"  type="box" pos="-6.20 0 0.25" size="0.10 6.20 0.25" rgba="0.62 0.62 0.64 1" friction="1.0 0.02 0.02"/>
+
+    <!-- 中央出生平地区：留出较干净的站立与起步空间，避免初始化直接压在障碍上。 -->
+    <geom name="spawn_pad" type="box" pos="0 0 0.02" size="1.20 1.00 0.02" rgba="0.35 0.40 0.44 1" friction="1.0 0.02 0.02"/>
+
+    <!-- 左上斜坡区：包含上坡、下坡和横坡，用于测试纵向与横向姿态稳定性。 -->
+    <geom name="ramp_up_nw" type="box" pos="-3.80 3.70 0.17" size="1.10 0.85 0.05" euler="0 -10 0" rgba="0.46 0.46 0.46 1" friction="1.0 0.02 0.02"/>
+    <geom name="ramp_down_nw" type="box" pos="-1.20 3.70 0.17" size="1.10 0.85 0.05" euler="0 10 0" rgba="0.42 0.42 0.42 1" friction="1.0 0.02 0.02"/>
+    <geom name="cross_slope_nw" type="box" pos="-2.50 5.05 0.10" size="1.20 0.80 0.04" euler="8 0 0" rgba="0.36 0.42 0.46 1" friction="1.0 0.02 0.02"/>
+
+    <!-- 右上粗糙地形区：由多个不同高度小凸块构成，模拟凹凸不平复杂路面。 -->
+    <geom name="rough_ne_1" type="box" pos="1.90 3.10 0.03" size="0.30 0.26 0.03" rgba="0.34 0.34 0.38 1" friction="1.0 0.02 0.02"/>
+    <geom name="rough_ne_2" type="box" pos="2.60 3.55 0.07" size="0.24 0.22 0.07" rgba="0.34 0.34 0.38 1" friction="1.0 0.02 0.02"/>
+    <geom name="rough_ne_3" type="box" pos="3.30 3.00 0.05" size="0.28 0.24 0.05" rgba="0.34 0.34 0.38 1" friction="1.0 0.02 0.02"/>
+    <geom name="rough_ne_4" type="box" pos="4.00 3.65 0.09" size="0.22 0.20 0.09" rgba="0.34 0.34 0.38 1" friction="1.0 0.02 0.02"/>
+    <geom name="rough_ne_5" type="box" pos="4.65 3.10 0.04" size="0.26 0.24 0.04" rgba="0.34 0.34 0.38 1" friction="1.0 0.02 0.02"/>
+    <geom name="rough_ne_6" type="box" pos="2.20 4.55 0.08" size="0.22 0.22 0.08" rgba="0.34 0.34 0.38 1" friction="1.0 0.02 0.02"/>
+    <geom name="rough_ne_7" type="box" pos="2.95 5.05 0.05" size="0.30 0.20 0.05" rgba="0.34 0.34 0.38 1" friction="1.0 0.02 0.02"/>
+    <geom name="rough_ne_8" type="box" pos="3.75 4.45 0.10" size="0.22 0.20 0.10" rgba="0.34 0.34 0.38 1" friction="1.0 0.02 0.02"/>
+    <geom name="rough_ne_9" type="box" pos="4.55 5.00 0.06" size="0.24 0.22 0.06" rgba="0.34 0.34 0.38 1" friction="1.0 0.02 0.02"/>
+
+    <!-- 左下台阶区：包含一组上楼梯和一组下楼梯，用于测试抬腿与下台阶制动能力。 -->
+    <geom name="stairs_up_sw_1" type="box" pos="-4.70 -3.70 0.04" size="0.22 0.90 0.04" rgba="0.56 0.50 0.42 1" friction="1.1 0.02 0.02"/>
+    <geom name="stairs_up_sw_2" type="box" pos="-4.25 -3.70 0.08" size="0.22 0.90 0.08" rgba="0.56 0.50 0.42 1" friction="1.1 0.02 0.02"/>
+    <geom name="stairs_up_sw_3" type="box" pos="-3.80 -3.70 0.12" size="0.22 0.90 0.12" rgba="0.56 0.50 0.42 1" friction="1.1 0.02 0.02"/>
+    <geom name="stairs_up_sw_4" type="box" pos="-3.35 -3.70 0.16" size="0.22 0.90 0.16" rgba="0.56 0.50 0.42 1" friction="1.1 0.02 0.02"/>
+    <geom name="stairs_up_sw_5" type="box" pos="-2.90 -3.70 0.20" size="0.22 0.90 0.20" rgba="0.56 0.50 0.42 1" friction="1.1 0.02 0.02"/>
+    <geom name="stairs_down_sw_1" type="box" pos="-1.80 -4.95 0.20" size="0.22 0.90 0.20" rgba="0.50 0.45 0.38 1" friction="1.1 0.02 0.02"/>
+    <geom name="stairs_down_sw_2" type="box" pos="-1.35 -4.95 0.16" size="0.22 0.90 0.16" rgba="0.50 0.45 0.38 1" friction="1.1 0.02 0.02"/>
+    <geom name="stairs_down_sw_3" type="box" pos="-0.90 -4.95 0.12" size="0.22 0.90 0.12" rgba="0.50 0.45 0.38 1" friction="1.1 0.02 0.02"/>
+    <geom name="stairs_down_sw_4" type="box" pos="-0.45 -4.95 0.08" size="0.22 0.90 0.08" rgba="0.50 0.45 0.38 1" friction="1.1 0.02 0.02"/>
+    <geom name="stairs_down_sw_5" type="box" pos="0.00 -4.95 0.04" size="0.22 0.90 0.04" rgba="0.50 0.45 0.38 1" friction="1.1 0.02 0.02"/>
+
+    <!-- 右下高台与复杂障碍区：包含 40cm/50cm 高台、错位踏块和一条 30cm 挡板。 -->
+    <geom name="platform_40cm" type="box" pos="3.15 -2.60 0.20" size="0.75 0.65 0.20" rgba="0.44 0.44 0.48 1" friction="1.1 0.02 0.02"/>
+    <geom name="platform_50cm" type="box" pos="4.95 -2.60 0.25" size="0.75 0.65 0.25" rgba="0.40 0.40 0.45 1" friction="1.1 0.02 0.02"/>
+    <geom name="complex_step_1" type="box" pos="2.15 -4.15 0.06" size="0.28 0.28 0.06" rgba="0.38 0.38 0.42 1" friction="1.1 0.02 0.02"/>
+    <geom name="complex_step_2" type="box" pos="3.00 -4.75 0.11" size="0.24 0.24 0.11" rgba="0.38 0.38 0.42 1" friction="1.1 0.02 0.02"/>
+    <geom name="complex_step_3" type="box" pos="3.90 -4.10 0.08" size="0.26 0.24 0.08" rgba="0.38 0.38 0.42 1" friction="1.1 0.02 0.02"/>
+    <geom name="complex_step_4" type="box" pos="4.70 -4.80 0.13" size="0.22 0.22 0.13" rgba="0.38 0.38 0.42 1" friction="1.1 0.02 0.02"/>
+    <geom name="barrier_30cm" type="box" pos="4.15 -0.70 0.15" size="1.25 0.08 0.15" rgba="0.68 0.56 0.34 1" friction="1.1 0.02 0.02"/>
+
+    <!-- 中右波浪复杂路：补充一块连续起伏路面，避免只有离散块。 -->
+    <geom name="wave_se_1" type="box" pos="1.90 -0.90 0.05" size="0.30 0.65 0.03" euler="0 -10 0" rgba="0.48 0.52 0.44 1" friction="1.0 0.02 0.02"/>
+    <geom name="wave_se_2" type="box" pos="2.55 -0.90 0.05" size="0.30 0.65 0.03" euler="0 10 0" rgba="0.48 0.52 0.44 1" friction="1.0 0.02 0.02"/>
+    <geom name="wave_se_3" type="box" pos="3.20 -0.90 0.05" size="0.30 0.65 0.03" euler="0 -10 0" rgba="0.48 0.52 0.44 1" friction="1.0 0.02 0.02"/>
+  </worldbody>
+
+</mujoco>
